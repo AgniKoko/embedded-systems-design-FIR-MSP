@@ -1,0 +1,100 @@
+//===================================================
+//
+// IAR EMBEDDED WORKBENCH TUTORIAL
+// Macro package for CSPY debugger to simulate data
+// read, immediate breakpoint and defining a simulated
+// interrupt.
+//
+//===================================================
+
+__var _fileHandle;
+//__var _interruptID1;
+//__var _interruptID2;
+__var _breakID;
+
+execUserSetup()
+{
+  __message "execUserSetup() called\n";
+
+  // Call the simulation setup
+  SimulationSetup ();
+}
+
+
+execUserReset()
+{
+  __message "execUserReset() called\n";
+
+  if( _fileHandle )
+  {
+    __resetFile( _fileHandle );
+  }
+}
+
+
+execUserExit()
+{
+  __message "execUserExit() called\n";
+
+  // Call the Simulation shutdown
+  SimulationShutdown();
+}
+
+
+SimulationSetup()
+{
+  // Open the text file for ASCII reading
+  // Put in the appropriate path to the InputData.txt file
+  _fileHandle = __openFile( "..\\Lab3_PartA\\src\\InputData.txt", "r" );
+  if( !_fileHandle )
+  {
+    __message "could not open file" ;
+  }
+  
+//  _interruptID1 = __orderInterrupt("TIMERA1_TAR_VECTOR", 1000, 2500, 1, 1, 1, 100 ); 
+//  if( -1 == _interruptID1 )
+//  {
+//    __message "ERROR: failed to order Timer interrupt";
+//  }
+//  _interruptID2 = __orderInterrupt( "ADC12_VECTOR", 1270, 2770, 0, 1, 0, 100 );
+//  if( -1 == _interruptID2 )
+//  {
+//    __message "ERROR: failed to order ADC interrupt";
+//  }
+  
+  // Set up the immediate breakpoint
+  _breakID = __setSimBreak( "ADC12MEM1", "R", "Access()" );
+ 
+}
+
+
+Access()
+{
+  __message "Access() called\n";
+
+  // In this example we read the adc values from a file
+  __var _adcValue;
+  if( 0 == __readFile( _fileHandle, &_adcValue ) )
+  {
+    ADC12MEM1 = _adcValue;
+  }
+  else
+  {
+    __message "error reading value from file";
+  }
+
+  __message "ADC12MEM1 = 0x", _adcValue:%X,"\n";
+}
+
+
+SimulationShutdown()
+{
+//  __cancelInterrupt( _interruptID1 );
+  
+//  __cancelInterrupt( _interruptID2 );
+
+  __clearBreak( _breakID );
+
+  __closeFile( _fileHandle );
+}
+
